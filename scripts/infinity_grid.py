@@ -93,15 +93,18 @@ def prompt_replace_parse_list(in_list):
     return in_list
 
 def apply_prompt_replace(p, v):
-    val = v.split('=', maxsplit=1)
-    if len(val) != 2:
-        raise RuntimeError(f"Invalid prompt replace, missing '=' symbol, for '{v}'")
-    match = val[0].strip()
-    replace = val[1].strip()
-    if Script.VALIDATE_REPLACE and match not in p.prompt and match not in p.negative_prompt:
-        raise RuntimeError(f"Invalid prompt replace, '{match}' is not in prompt '{p.prompt}' nor negative prompt '{p.negative_prompt}'")
-    p.prompt = p.prompt.replace(match, replace)
-    p.negative_prompt = p.negative_prompt.replace(match, replace)
+    multiPromptReplaceToken = '&&'
+    replacementInstructions = [x.strip() for x in v.split(multiPromptReplaceToken)]
+    for replacementInstruction in replacementInstructions:
+        val = v.split('=', maxsplit=1)
+        if len(val) != 2:
+            raise RuntimeError(f"Invalid prompt replace, missing '=' symbol, for '{replacementInstruction}'")
+        match = val[0].strip()
+        replace = val[1].strip()
+        if Script.VALIDATE_REPLACE and match not in p.prompt and match not in p.negative_prompt:
+            raise RuntimeError(f"Invalid prompt replace, '{match}' is not in prompt '{p.prompt}' nor negative prompt '{p.negative_prompt}'")
+        p.prompt = p.prompt.replace(match, replace)
+        p.negative_prompt = p.negative_prompt.replace(match, replace)
 
 def apply_enable_hr(p, v):
     p.enable_hr = v
