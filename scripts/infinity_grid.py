@@ -136,7 +136,7 @@ def try_init():
     registerMode("Model", GridSettingMode(dry=False, type="text", apply=apply_model, clean=clean_model, valid_list=lambda: list(map(lambda m: m.title, sd_models.checkpoints_list.values()))))
     registerMode("VAE", GridSettingMode(dry=False, type="text", apply=apply_vae, clean=clean_vae, valid_list=lambda: list(sd_vae.vae_dict.keys()) + ['none', 'auto', 'automatic']))
     registerMode("Sampler", GridSettingMode(dry=True, type="text", apply=apply_field("sampler_name"), valid_list=lambda: list(sd_samplers.all_samplers_map.keys())))
-    registerMode("Scheduler", GridSettingMode(dry=True, type="text", apply=apply_field("scheduler"), valid_list=lambda: list(shared.schedulers.schedulers.keys())))
+    registerMode("Scheduler", GridSettingMode(dry=True, type="text", apply=apply_field("scheduler"), valid_list=lambda: list(shared.sd_schedulers.schedulers_map.keys())))
     registerMode("Seed", GridSettingMode(dry=True, type="integer", apply=apply_field("seed")))
     registerMode("Steps", GridSettingMode(dry=True, type="integer", min=0, max=200, apply=apply_field("steps")))
     registerMode("CFG Scale", GridSettingMode(dry=True, type="decimal", min=0, max=500, apply=apply_field("cfg_scale")))
