@@ -4,7 +4,7 @@
 # Author: Alex 'mcmonkey' Goodwin
 # GitHub URL: https://github.com/mcmonkeyprojects/sd-infinity-grid-generator-script
 # Created: 2022/12/08
-# Last updated: 2023/02/19
+# Last updated: 2024/07/05
 # License: MIT
 #
 # For usage help, view the README.md file in the extension root, or via the GitHub page.
@@ -93,15 +93,18 @@ def prompt_replace_parse_list(in_list):
     return in_list
 
 def apply_prompt_replace(p, v):
-    val = v.split('=', maxsplit=1)
-    if len(val) != 2:
-        raise RuntimeError(f"Invalid prompt replace, missing '=' symbol, for '{v}'")
-    match = val[0].strip()
-    replace = val[1].strip()
-    if Script.VALIDATE_REPLACE and match not in p.prompt and match not in p.negative_prompt:
-        raise RuntimeError(f"Invalid prompt replace, '{match}' is not in prompt '{p.prompt}' nor negative prompt '{p.negative_prompt}'")
-    p.prompt = p.prompt.replace(match, replace)
-    p.negative_prompt = p.negative_prompt.replace(match, replace)
+    multiPromptReplaceToken = '&&'
+    replacementInstructions = [x.strip() for x in v.split(multiPromptReplaceToken)]
+    for replacementInstruction in replacementInstructions:
+        val = v.split('=', maxsplit=1)
+        if len(val) != 2:
+            raise RuntimeError(f"Invalid prompt replace, missing '=' symbol, for '{replacementInstruction}'")
+        match = val[0].strip()
+        replace = val[1].strip()
+        if Script.VALIDATE_REPLACE and match not in p.prompt and match not in p.negative_prompt:
+            raise RuntimeError(f"Invalid prompt replace, '{match}' is not in prompt '{p.prompt}' nor negative prompt '{p.negative_prompt}'")
+        p.prompt = p.prompt.replace(match, replace)
+        p.negative_prompt = p.negative_prompt.replace(match, replace)
 
 def apply_enable_hr(p, v):
     p.enable_hr = v
@@ -235,7 +238,7 @@ def a1111_grid_call_param_add_hook(grid_call: core.SingleGridCall, param: str, v
 def a1111_grid_call_apply_hook(grid_call: core.SingleGridCall, param: str, dry: bool):
     for replace in grid_call.replacements:
         apply_prompt_replace(param, replace)
-    
+
 def a1111_grid_runner_pre_run_hook(grid_runner: core.GridRunner):
     state.job_count = grid_runner.total_run
     shared.total_tqdm.updateTotal(grid_runner.total_steps)
