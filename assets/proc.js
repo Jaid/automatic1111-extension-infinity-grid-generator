@@ -1,5 +1,5 @@
 /*
- * This file is part of Infinity Grid Generator, view the README.md at https://github.com/mcmonkeyprojects/sd-infinity-grid-generator-script for more information.
+* This file is part of Infinity Grid Generator, view the README.md at https://github.com/mcmonkeyprojects/sd-infinity-grid-generator-script for more information.
 */
 
 let suppressUpdate = true;
@@ -332,17 +332,17 @@ function getXAxisContent(x, y, xAxis, yval, x2Axis, x2val, y2Axis, y2val) {
                     let color = percentToRedGreen(score * 100);
                     let blockColor = '';
                     if (scoreDisplay == 'Thin Outline')
-                    {
+                        {
                         let xborder = `border-top: 2px solid ${color}; border-bottom: 2px solid ${color};`;
                         let yborder = `border-left: 2px solid ${color}; border-right: 2px solid ${color};`;
                         elem.getElementsByTagName('img')[0].style = `${xborder} ${yborder}`;
                     }
                     else if (scoreDisplay == 'Thick Bars')
-                    {
+                        {
                         elem.getElementsByTagName('img')[0].style = `border-top: 10px solid ${color}; border-left: 10px solid ${color};`;
                     }
                     else if (scoreDisplay == 'Heatmap')
-                    {
+                        {
                         blockColor = `color-mix(in srgb, ${color} 50%, transparent)`;
                     }
                     elem.firstChild.innerHTML = `<div style="position: relative; width: 0; height: 0"><div style="position: absolute; left: 0; z-index: 20;">${Math.round(score * 100)}%</div><div class="heatmapper" style="position: absolute; left: 0; width: 100px; height: 100px; z-index: 10; background-color: ${blockColor}"></div></div>`;
@@ -722,7 +722,7 @@ function removeGeneratedImages() {
     document.getElementById('save_image_output').innerHTML = '';
 }
 
-function makeImage(minRow = 0, doClear = true) {
+function makeImageWithSideLabels(minRow = 0, doClear = true) {
     // Preprocess data
     var imageTable = document.getElementById('image_table');
     var rows = Array.from(imageTable.getElementsByTagName('tr')).filter(e => e.getElementsByTagName('img').length > 0);
@@ -746,7 +746,7 @@ function makeImage(minRow = 0, doClear = true) {
         var height = Math.max(...real_images.map(i => i.naturalHeight * sizeMult));
         var y = pad_y + total_height;
         if (total_height + height > 30000) { // 32,767 is max canvas size
-            setTimeout(() => makeImage(count, false), 100);
+            setTimeout(() => makeImageWithSideLabels(count, false), 100);
             break;
         }
         total_height += height + 1;
@@ -899,6 +899,125 @@ function makeImage(minRow = 0, doClear = true) {
         canvas.style.height = "200px";
     }
     $('#save_image_output_modal').modal('show');
+}
+
+function makeImageWithOverlayLables(minRow = 0, doClear = true) {
+    // Preprocess data
+    var imageTable = document.getElementById('image_table');
+    var rows = Array.from(imageTable.getElementsByTagName('tr')).filter(e => e.getElementsByTagName('img').length > 0);
+    var header = document.getElementById('image_table_header');
+    var headers = Array.from(header.getElementsByTagName('th')).slice(1);
+    var widest_width = 0;
+    var total_height = 0;
+    var columns = 0;
+    var rowData = [];
+    let count = 0;
+    let sizeMult = parseFloat(document.getElementById('makeimage_size').value.replaceAll('x', ''));
+    for (var row of rows) {
+        count++;
+        if (count < minRow) {
+            continue;
+        }
+        var images = Array.from(row.getElementsByTagName('img'));
+        var real_images = images.filter(i => i.src != 'placeholder.png');
+        widest_width = Math.max(widest_width, ...real_images.map(i => i.naturalWidth * sizeMult));
+        var height = Math.max(...real_images.map(i => i.naturalHeight * sizeMult));
+        var y = total_height;
+        if (total_height + height > 30000) { // 32,767 is max canvas size
+            setTimeout(() => makeImageWithOverlayLables(count, false), 100);
+            break;
+        }
+        total_height += height;
+        columns = Math.max(columns, images.length);
+        var label = row.getElementsByClassName('axis_label_td')[0];
+        rowData.push({ row, images, real_images, height, label, y });
+    }
+    var holder = document.getElementById('save_image_output');
+    if (doClear) {
+        removeGeneratedImages();
+    }
+
+    var canvas = document.createElement('canvas');
+    canvas.width = widest_width * columns;
+    canvas.height = total_height;
+    var ctx = canvas.getContext('2d');
+
+    // Calculate dynamic text height and padding
+    var textHeight = Math.trunc((widest_width / 1024) * 40);
+    var textPadding = Math.trunc(textHeight * 0.2);
+    var lineHeight = textHeight + textPadding;
+
+    // Background
+    ctx.beginPath();
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#202020';
+    ctx.fill();
+
+    // Images and Labels
+    ctx.font = `${textHeight}px sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'bottom';
+
+    function getLabelText(element) {
+        var blocks = element.getElementsByTagName('b');
+        return blocks.length == 2 ? blocks[0].textContent + " " + blocks[1].textContent : blocks[0].textContent;
+    }
+
+    for (var row of rowData) {
+        var x = 0;
+        var yLabel = getLabelText(row.label);
+        for (var i = 0; i < row.images.length; i++) {
+            var image = row.images[i];
+            if (image.src != 'placeholder.png') {
+                ctx.drawImage(image, x, row.y, image.naturalWidth * sizeMult, image.naturalHeight * sizeMult);
+
+                // Get X-axis label
+                var xLabel = getLabelText(headers[i]);
+
+                // Create semi-transparent background for text
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                var yTextWidth = ctx.measureText(yLabel).width;
+                var xTextWidth = ctx.measureText(xLabel).width;
+                var maxWidth = Math.max(yTextWidth, xTextWidth);
+                var overlayHeight = 2 * lineHeight + textPadding;
+                ctx.fillRect(x, row.y + image.naturalHeight * sizeMult - overlayHeight, maxWidth + 2 * textPadding, overlayHeight);
+
+                // Draw text
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(yLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - lineHeight - textPadding);
+                ctx.fillText(xLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - textPadding);
+
+                x += widest_width;
+            }
+        }
+    }
+
+    var imageType = document.getElementById('makeimage_type').value;
+    try {
+        var data = canvas.toDataURL(`image/${imageType}`);
+        canvas.remove();
+        var img = new Image();
+        img.className = 'save_image_output_img';
+        img.src = data;
+        holder.appendChild(img);
+    }
+    catch (e) {
+        holder.appendChild(canvas);
+        canvas.className = 'save_image_output_img';
+        canvas.style.width = "200px";
+        canvas.style.height = "200px";
+    }
+    $('#save_image_output_modal').modal('show');
+}
+
+function makeImage() {
+    let useOverlay = document.getElementById('makeimage_layout')?.value === 'overlay_labels';
+    if (useOverlay) {
+        makeImageWithOverlayLables();
+    }
+    else {
+        makeImageWithSideLabels();
+    }
 }
 
 function makeGif() {
