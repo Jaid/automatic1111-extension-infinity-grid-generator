@@ -24,21 +24,30 @@ The disadvantage is that time to generate a grid is exponential - if you have 5 
 
 ### Table of Contents
 
-- [Examples](#Examples)
-- [Status](#Status)
-- [Installation](#Installation)
-- [Basic Usage](#Basic-Usage)
-- [Advanced Usage](#Advanced-Usage)
+- [Stable Diffusion Infinity Grid Generator](#stable-diffusion-infinity-grid-generator)
+    - [Concept](#concept)
+    - [Goals and Use Cases](#goals-and-use-cases)
+    - [Pros/Cons](#proscons)
+    - [Table of Contents](#table-of-contents)
+    - [Examples](#examples)
+    - [Status](#status)
+    - [Installation](#installation)
+    - [Basic Usage](#basic-usage)
+    - [Advanced Usage](#advanced-usage)
     - [1: Grid Definition File](#1-grid-definition-file)
+      - [Settings supported for parameters](#settings-supported-for-parameters)
     - [Supported Extensions](#supported-extensions)
-        - [Dynamic Thresholding (CFG Scale Fix)](#dynamic-thresholding-cfg-scale-fix)
-        - [ControlNet](#controlnet)
+      - [Dynamic Thresholding (CFG Scale Fix)](#dynamic-thresholding-cfg-scale-fix)
+      - [ControlNet](#controlnet)
+      - [Other Extensions](#other-extensions)
     - [2: Grid Content Generation via WebUI](#2-grid-content-generation-via-webui)
     - [3: Using The Output](#3-using-the-output)
     - [4: Expanding Later](#4-expanding-later)
-- [Credits](#credits)
-- [Common Issues](#common-issues)
-- [License](#License)
+    - [Credits](#credits)
+    - [Common Issues](#common-issues)
+    - [Licensing pre-note:](#licensing-pre-note)
+    - [The short of the license is:](#the-short-of-the-license-is)
+    - [The long version of the license follows:](#the-long-version-of-the-license-follows)
 
 --------------
 
@@ -153,6 +162,7 @@ axes:
 | Name | Type | Example | Notes |
 | --- | --- | --- | ----------- |
 | `Sampler` | Named | `DDIM`, `euler`, ... | |
+| `Scheduler` | Named | `Automatic`, `Karras`, ... | |
 | `Model` | Filename | `sd-v1-5` | Note that `Model` and `VAE` are **global settings**, and as such you should not have an axis where some values specify one of those params but others don't, as this will cause an unpredictable model selection for the values that lack specificity. |
 | `VAE` | Filename | `kl-f8-anime2` | See note on `Model` above |
 | `Prompt` | Text | `a cat` | |
