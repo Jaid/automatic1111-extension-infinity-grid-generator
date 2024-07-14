@@ -33,7 +33,7 @@
             "type": "object",
             "patternProperties": {
                 ".*": {
-                    "$ref": "#/definitions/Axis" 
+                    "$ref": "#/definitions/Axis"
                 }
             },
             "title": "Axes"
@@ -77,7 +77,7 @@
         "Value": {
             "oneOf": [{
                 "type": "string",
-                "pattern": "(Sampler|sampler|Model|model|VAE|vae|Prompt|prompt|NegativePrompt|negativeprompt|Negative Prompt|negative prompt|PromptReplace|promptreplace|Prompt Replace|prompt replace|Prompt Replace|prompt replace|Seed|seed|Steps|steps|CFGScale|cfgscale|CFG Scale|cfg scale|CFGscale|CFG scale|Width|width|Height|height|OutWidth|outwidth|Out Width|out width|OutHeight|outheight|Out Height|out height|ClipSkip|clipskip|Clip Skip|clip skip|VarSeed|varseed|Var Seed|var seed|VarStrength|varstrength|Var Strength|var strength|CodeFormerWeight|codeformerweight|CodeFormer Weight|codeformer weight|Denoising|denoising|ETA|eta|ETANoiseSeedDelta|etanoiseseeddelta|ETA Noise Seed Delta|eta noise seed delta|SigmaChurn|sigmachurn|Sigma Churn|sigma churn|SigmaTmin|sigmatmin|Sigma Tmin|sigma tmin|SigmaTmax|sigmatmax|Sigma Tmax|sigma tmax|SigmaNoise|sigmanoise|Sigma Noise|sigma noise|Tiling|tiling|ImageMaskWeight|imagemaskweight|Image Mask Weight|image mask weight|EnableHighresFix|enablehighresfix|Enable Highres Fix|enable highres fix|HighresScale|highresscale|Highres Scale|highres scale|HighresSteps|highressteps|Highres Steps|highres steps|HighresUpscaler|highresupscaler|Highres Upscaler|highres upscaler|HighresResizeWidth|highresresizewidth|Highres Resize Width|highres resize width|HighresResizeHeight|highresresizeheight|Highres Resize Height|highres resize height|HighresUpscaleToWidth|highresupscaletowidth|Highres Upscale To Width|highres upscale to width|HighresUpscaleToHeight|highresupscaletoheight|Highres Upscale To Height|highres upscale to height|RestoreFaces|Restore Faces|restorefaces|restore faces|([dD]ynamic\\s?[Tt]hreshold.*)|)\\=.*"
+                "pattern": "(Sampler|sampler|Scheduler|scheduler|Model|model|VAE|vae|Prompt|prompt|NegativePrompt|negativeprompt|Negative Prompt|negative prompt|PromptReplace|promptreplace|Prompt Replace|prompt replace|Prompt Replace|prompt replace|Seed|seed|Steps|steps|CFGScale|cfgscale|CFG Scale|cfg scale|CFGscale|CFG scale|Width|width|Height|height|OutWidth|outwidth|Out Width|out width|OutHeight|outheight|Out Height|out height|ClipSkip|clipskip|Clip Skip|clip skip|VarSeed|varseed|Var Seed|var seed|VarStrength|varstrength|Var Strength|var strength|CodeFormerWeight|codeformerweight|CodeFormer Weight|codeformer weight|Denoising|denoising|ETA|eta|ETANoiseSeedDelta|etanoiseseeddelta|ETA Noise Seed Delta|eta noise seed delta|SigmaChurn|sigmachurn|Sigma Churn|sigma churn|SigmaTmin|sigmatmin|Sigma Tmin|sigma tmin|SigmaTmax|sigmatmax|Sigma Tmax|sigma tmax|SigmaNoise|sigmanoise|Sigma Noise|sigma noise|Tiling|tiling|ImageMaskWeight|imagemaskweight|Image Mask Weight|image mask weight|EnableHighresFix|enablehighresfix|Enable Highres Fix|enable highres fix|HighresScale|highresscale|Highres Scale|highres scale|HighresSteps|highressteps|Highres Steps|highres steps|HighresUpscaler|highresupscaler|Highres Upscaler|highres upscaler|HighresResizeWidth|highresresizewidth|Highres Resize Width|highres resize width|HighresResizeHeight|highresresizeheight|Highres Resize Height|highres resize height|HighresUpscaleToWidth|highresupscaletowidth|Highres Upscale To Width|highres upscale to width|HighresUpscaleToHeight|highresupscaletoheight|Highres Upscale To Height|highres upscale to height|RestoreFaces|Restore Faces|restorefaces|restore faces|([dD]ynamic\\s?[Tt]hreshold.*)|)\\=.*"
             },
             {
                 "type": "object",
@@ -139,6 +139,7 @@
             "additionalProperties": false,
             "properties": {
                 "Sampler": { "type": "string" }, "sampler": { "type": "string" },
+                "Scheduler": { "type": "string" }, "scheduler": { "type": "string" },
                 "Model": { "type": "string" }, "model": { "type": "string" },
                 "VAE": { "type": "string" }, "vae": { "type": "string" },
                 "Prompt": { "type": "string" }, "prompt": { "type": "string" },

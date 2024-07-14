@@ -136,6 +136,7 @@ def try_init():
     registerMode("Model", GridSettingMode(dry=False, type="text", apply=apply_model, clean=clean_model, valid_list=lambda: list(map(lambda m: m.title, sd_models.checkpoints_list.values()))))
     registerMode("VAE", GridSettingMode(dry=False, type="text", apply=apply_vae, clean=clean_vae, valid_list=lambda: list(sd_vae.vae_dict.keys()) + ['none', 'auto', 'automatic']))
     registerMode("Sampler", GridSettingMode(dry=True, type="text", apply=apply_field("sampler_name"), valid_list=lambda: list(sd_samplers.all_samplers_map.keys())))
+    registerMode("Scheduler", GridSettingMode(dry=True, type="text", apply=apply_field("scheduler"), valid_list=lambda: list(shared.schedulers.schedulers.keys())))
     registerMode("Seed", GridSettingMode(dry=True, type="integer", apply=apply_field("seed")))
     registerMode("Steps", GridSettingMode(dry=True, type="integer", min=0, max=200, apply=apply_field("steps")))
     registerMode("CFG Scale", GridSettingMode(dry=True, type="decimal", min=0, max=500, apply=apply_field("cfg_scale")))
@@ -235,7 +236,7 @@ def a1111_grid_call_param_add_hook(grid_call: core.SingleGridCall, param: str, v
 def a1111_grid_call_apply_hook(grid_call: core.SingleGridCall, param: str, dry: bool):
     for replace in grid_call.replacements:
         apply_prompt_replace(param, replace)
-    
+
 def a1111_grid_runner_pre_run_hook(grid_runner: core.GridRunner):
     state.job_count = grid_runner.total_run
     shared.total_tqdm.updateTotal(grid_runner.total_steps)
@@ -297,6 +298,7 @@ def a1111_grid_runner_count_steps(grid_runner: core.GridRunner, set):
 def a1111_webdata_get_base_param_data(p):
     return {
         "sampler": p.sampler_name,
+        "scheduler": p.scheduler,
         "seed": p.seed,
         "restorefaces": (opts.face_restoration_model if p.restore_faces else None),
         "steps": p.steps,

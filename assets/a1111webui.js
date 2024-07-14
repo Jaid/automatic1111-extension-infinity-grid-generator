@@ -34,8 +34,9 @@ function formatMetadata(valSet) {
     if (negative.length > 0) {
         negative = '\nNegative prompt: ' + negative;
     }
-    const handled = ['steps', 'sampler', 'cfgscale', 'seed', 'restorefaces', 'width', 'height', 'model', 'varseed', 'varstrength', 'denoising', 'eta', 'clipskip', 'vae', 'sigmachurn', 'sigmatmin', 'sigmatmax', 'sigmanoise', 'prompt', 'negativeprompt', 'codeformerweight'];
+    const handled = ['steps', 'sampler', 'scheduler', 'cfgscale', 'seed', 'restorefaces', 'width', 'height', 'model', 'varseed', 'varstrength', 'denoising', 'eta', 'clipskip', 'vae', 'sigmachurn', 'sigmatmin', 'sigmatmax', 'sigmanoise', 'prompt', 'negativeprompt', 'codeformerweight'];
     var keyData = formatMet('Steps', valSet['steps'])
+        + formatMet('Scheduler', valSet['scheduler'])
         + formatMet('Sampler', valSet['sampler'])
         + formatMet('CFG scale', valSet['cfgscale'])
         + formatMet('Seed', valSet['seed'])
