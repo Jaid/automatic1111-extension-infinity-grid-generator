@@ -901,121 +901,195 @@ function makeImageWithSideLabels(minRow = 0, doClear = true) {
     $('#save_image_output_modal').modal('show');
 }
 
-function makeImageWithOverlayLables(minRow = 0, doClear = true) {
-    // Preprocess data
-    var imageTable = document.getElementById('image_table');
-    var rows = Array.from(imageTable.getElementsByTagName('tr')).filter(e => e.getElementsByTagName('img').length > 0);
-    var header = document.getElementById('image_table_header');
-    var headers = Array.from(header.getElementsByTagName('th')).slice(1);
-    var widest_width = 0;
-    var total_height = 0;
-    var columns = 0;
-    var rowData = [];
-    let count = 0;
-    let sizeMult = parseFloat(document.getElementById('makeimage_size').value.replaceAll('x', ''));
-    for (var row of rows) {
-        count++;
-        if (count < minRow) {
-            continue;
-        }
-        var images = Array.from(row.getElementsByTagName('img'));
-        var real_images = images.filter(i => i.src != 'placeholder.png');
-        widest_width = Math.max(widest_width, ...real_images.map(i => i.naturalWidth * sizeMult));
-        var height = Math.max(...real_images.map(i => i.naturalHeight * sizeMult));
-        var y = total_height;
-        if (total_height + height > 30000) { // 32,767 is max canvas size
-            setTimeout(() => makeImageWithOverlayLables(count, false), 100);
-            break;
-        }
-        total_height += height;
-        columns = Math.max(columns, images.length);
-        var label = row.getElementsByClassName('axis_label_td')[0];
-        rowData.push({ row, images, real_images, height, label, y });
-    }
-    var holder = document.getElementById('save_image_output');
-    if (doClear) {
-        removeGeneratedImages();
-    }
+function makeImageMinimal(minRow = 0, doClear = true) {
+  // Preprocess data
+  var imageTable = document.getElementById('image_table');
+  var rows = Array.from(imageTable.getElementsByTagName('tr')).filter(e => e.getElementsByTagName('img').length > 0);
+  var widest_width = 0;
+  var total_height = 0;
+  var columns = 0;
+  var rowData = [];
+  let count = 0;
+  let sizeMult = parseFloat(document.getElementById('makeimage_size').value.replaceAll('x', ''));
+  for (var row of rows) {
+      count++;
+      if (count < minRow) {
+          continue;
+      }
+      var images = Array.from(row.getElementsByTagName('img'));
+      var real_images = images.filter(i => i.src != 'placeholder.png');
+      widest_width = Math.max(widest_width, ...real_images.map(i => i.naturalWidth * sizeMult));
+      var height = Math.max(...real_images.map(i => i.naturalHeight * sizeMult));
+      var y = total_height;
+      if (total_height + height > 30000) { // 32,767 is max canvas size
+          setTimeout(() => makeImageMinimal(count, false), 100);
+          break;
+      }
+      total_height += height;
+      columns = Math.max(columns, images.length);
+      rowData.push({ row, images, real_images, height, y });
+  }
+  var holder = document.getElementById('save_image_output');
+  if (doClear) {
+      removeGeneratedImages();
+  }
 
-    var canvas = document.createElement('canvas');
-    canvas.width = widest_width * columns;
-    canvas.height = total_height;
-    var ctx = canvas.getContext('2d');
+  var canvas = document.createElement('canvas');
+  canvas.width = widest_width * columns;
+  canvas.height = total_height;
+  var ctx = canvas.getContext('2d');
 
-    // Calculate dynamic text height and padding
-    var textHeight = Math.trunc((widest_width / 1024) * 40);
-    var textPadding = Math.trunc(textHeight * 0.2);
-    var lineHeight = textHeight + textPadding;
+  // Background
+  ctx.beginPath();
+  ctx.rect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#202020';
+  ctx.fill();
 
-    // Background
-    ctx.beginPath();
-    ctx.rect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#202020';
-    ctx.fill();
+  // Images
+  for (var row of rowData) {
+      var x = 0;
+      for (var image of row.images) {
+          if (image.src != 'placeholder.png') {
+              ctx.drawImage(image, x, row.y, image.naturalWidth * sizeMult, image.naturalHeight * sizeMult);
+              x += widest_width;
+          }
+      }
+  }
 
-    // Images and Labels
-    ctx.font = `${textHeight}px sans-serif`;
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'bottom';
+  var imageType = document.getElementById('makeimage_type').value;
+  try {
+      var data = canvas.toDataURL(`image/${imageType}`);
+      canvas.remove();
+      var img = new Image();
+      img.className = 'save_image_output_img';
+      img.src = data;
+      holder.appendChild(img);
+  }
+  catch (e) {
+      holder.appendChild(canvas);
+      canvas.className = 'save_image_output_img';
+      canvas.style.width = "200px";
+      canvas.style.height = "200px";
+  }
+  $('#save_image_output_modal').modal('show');
+}
 
-    function getLabelText(element) {
-        var blocks = element.getElementsByTagName('b');
-        return blocks.length == 2 ? blocks[0].textContent + " " + blocks[1].textContent : blocks[0].textContent;
-    }
+function makeImageWithOverlayLabels(minRow = 0, doClear = true) {
+  // Preprocess data
+  var imageTable = document.getElementById('image_table');
+  var rows = Array.from(imageTable.getElementsByTagName('tr')).filter(e => e.getElementsByTagName('img').length > 0);
+  var header = document.getElementById('image_table_header');
+  var headers = Array.from(header.getElementsByTagName('th')).slice(1);
+  var widest_width = 0;
+  var total_height = 0;
+  var columns = 0;
+  var rowData = [];
+  let count = 0;
+  let sizeMult = parseFloat(document.getElementById('makeimage_size').value.replaceAll('x', ''));
+  for (var row of rows) {
+      count++;
+      if (count < minRow) {
+          continue;
+      }
+      var images = Array.from(row.getElementsByTagName('img'));
+      var real_images = images.filter(i => i.src != 'placeholder.png');
+      widest_width = Math.max(widest_width, ...real_images.map(i => i.naturalWidth * sizeMult));
+      var height = Math.max(...real_images.map(i => i.naturalHeight * sizeMult));
+      var y = total_height;
+      if (total_height + height > 30000) { // 32,767 is max canvas size
+          setTimeout(() => makeImageWithOverlayLabels(count, false), 100);
+          break;
+      }
+      total_height += height;
+      columns = Math.max(columns, images.length);
+      var label = row.getElementsByClassName('axis_label_td')[0];
+      rowData.push({ row, images, real_images, height, label, y });
+  }
+  var holder = document.getElementById('save_image_output');
+  if (doClear) {
+      removeGeneratedImages();
+  }
 
-    for (var row of rowData) {
-        var x = 0;
-        var yLabel = getLabelText(row.label);
-        for (var i = 0; i < row.images.length; i++) {
-            var image = row.images[i];
-            if (image.src != 'placeholder.png') {
-                ctx.drawImage(image, x, row.y, image.naturalWidth * sizeMult, image.naturalHeight * sizeMult);
+  var canvas = document.createElement('canvas');
+  canvas.width = widest_width * columns;
+  canvas.height = total_height;
+  var ctx = canvas.getContext('2d');
 
-                // Get X-axis label
-                var xLabel = getLabelText(headers[i]);
+  // Calculate dynamic text height and padding
+  var textHeight = Math.trunc((widest_width / 1024) * 40);
+  var textPadding = Math.trunc(textHeight * 0.2);
+  var lineHeight = textHeight + textPadding;
 
-                // Create semi-transparent background for text
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                var yTextWidth = ctx.measureText(yLabel).width;
-                var xTextWidth = ctx.measureText(xLabel).width;
-                var maxWidth = Math.max(yTextWidth, xTextWidth);
-                var overlayHeight = 2 * lineHeight + textPadding;
-                ctx.fillRect(x, row.y + image.naturalHeight * sizeMult - overlayHeight, maxWidth + 2 * textPadding, overlayHeight);
+  // Background
+  ctx.beginPath();
+  ctx.rect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#202020';
+  ctx.fill();
 
-                // Draw text
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(yLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - lineHeight - textPadding);
-                ctx.fillText(xLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - textPadding);
+  // Images and Labels
+  ctx.font = `${textHeight}px sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  ctx.textBaseline = 'bottom';
 
-                x += widest_width;
-            }
-        }
-    }
+  function getLabelText(element) {
+      var blocks = element.getElementsByTagName('b');
+      return blocks.length == 2 ? blocks[0].textContent + " " + blocks[1].textContent : blocks[0].textContent;
+  }
 
-    var imageType = document.getElementById('makeimage_type').value;
-    try {
-        var data = canvas.toDataURL(`image/${imageType}`);
-        canvas.remove();
-        var img = new Image();
-        img.className = 'save_image_output_img';
-        img.src = data;
-        holder.appendChild(img);
-    }
-    catch (e) {
-        holder.appendChild(canvas);
-        canvas.className = 'save_image_output_img';
-        canvas.style.width = "200px";
-        canvas.style.height = "200px";
-    }
-    $('#save_image_output_modal').modal('show');
+  for (var row of rowData) {
+      var x = 0;
+      var yLabel = getLabelText(row.label);
+      for (var i = 0; i < row.images.length; i++) {
+          var image = row.images[i];
+          if (image.src != 'placeholder.png') {
+              ctx.drawImage(image, x, row.y, image.naturalWidth * sizeMult, image.naturalHeight * sizeMult);
+
+              // Get X-axis label
+              var xLabel = getLabelText(headers[i]);
+
+              // Create semi-transparent background for text
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+              var yTextWidth = ctx.measureText(yLabel).width;
+              var xTextWidth = ctx.measureText(xLabel).width;
+              var maxWidth = Math.max(yTextWidth, xTextWidth);
+              var overlayHeight = 2 * lineHeight + textPadding;
+              ctx.fillRect(x, row.y + image.naturalHeight * sizeMult - overlayHeight, maxWidth + 2 * textPadding, overlayHeight);
+
+              // Draw text
+              ctx.fillStyle = '#ffffff';
+              ctx.fillText(yLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - lineHeight - textPadding);
+              ctx.fillText(xLabel, x + textPadding, row.y + image.naturalHeight * sizeMult - textPadding);
+
+              x += widest_width;
+          }
+      }
+  }
+
+  var imageType = document.getElementById('makeimage_type').value;
+  try {
+      var data = canvas.toDataURL(`image/${imageType}`);
+      canvas.remove();
+      var img = new Image();
+      img.className = 'save_image_output_img';
+      img.src = data;
+      holder.appendChild(img);
+  }
+  catch (e) {
+      holder.appendChild(canvas);
+      canvas.className = 'save_image_output_img';
+      canvas.style.width = "200px";
+      canvas.style.height = "200px";
+  }
+  $('#save_image_output_modal').modal('show');
 }
 
 function makeImage() {
-    let useOverlay = document.getElementById('makeimage_layout')?.value === 'overlay_labels';
-    if (useOverlay) {
-        makeImageWithOverlayLables();
-    }
-    else {
+    let layoutKind = document.getElementById('makeimage_layout').value
+    if (layoutKind === 'overlay_labels') {
+        makeImageWithOverlayLabels();
+    } else if (layoutKind === 'minimal') {
+        makeImageMinimal();
+    } else {
         makeImageWithSideLabels();
     }
 }
